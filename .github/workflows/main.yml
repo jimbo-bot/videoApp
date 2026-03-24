@@ -1,0 +1,54 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout repo
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup Java
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # 3️⃣ Setup Node
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      # 4️⃣ Install Cordova globally
+      - name: Install Cordova
+        run: npm install -g cordova
+
+      # 5️⃣ Install project dependencies (if any)
+      - name: Install npm packages
+        run: npm install || true
+
+      # 6️⃣ Add Android platform (ignore if already exists)
+      - name: Add Android platform
+        run: |
+          if [ ! -d "platforms/android" ]; then
+            cordova platform add android
+          fi
+
+      # 7️⃣ Build the APK
+      - name: Build Android APK
+        run: cordova build android --verbose
+
+      # 8️⃣ Upload the APK as artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: APK
+          path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
